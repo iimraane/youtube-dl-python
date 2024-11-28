@@ -11,16 +11,18 @@ def get_video_formats(url):
         formats = info_dict.get('formats', [])
         return formats
 
-def download_video(url, format_choice):
+def download_video(url, format_choice, download_dir='videos'):
     try:
-        # Créer le répertoire 'videos' s'il n'existe pas
-        if not os.path.exists('videos'):
-            os.makedirs('videos')
+        # Vérifier les permissions et créer le répertoire 'videos' s'il n'existe pas
+        if not os.path.exists(download_dir):
+            os.makedirs(download_dir)
+        if not os.access(download_dir, os.W_OK):
+            raise PermissionError(f"Permission denied for directory: {download_dir}")
 
         # Options de téléchargement
         ydl_opts = {
             'format': format_choice,  # Sélection de la qualité choisie
-            'outtmpl': os.path.join('videos', '%(title)s.%(ext)s'),  # Où enregistrer la vidéo
+            'outtmpl': os.path.join(download_dir, '%(title)s.%(ext)s'),  # Où enregistrer la vidéo
         }
 
         # Téléchargement de la vidéo
@@ -28,7 +30,7 @@ def download_video(url, format_choice):
             ydl.download([url])
 
         # Afficher l'endroit où la vidéo a été téléchargée
-        print(f"La vidéo a été téléchargée dans : {os.path.abspath(os.path.join('videos', '%(title)s.%(ext)s'))}")
+        print(f"La vidéo a été téléchargée dans : {os.path.abspath(os.path.join(download_dir, '%(title)s.%(ext)s'))}")
 
         print("Téléchargement terminé !")
 
@@ -44,8 +46,14 @@ def show_available_formats(url):
 
     return formats
 
-def download_playlist(file_path):
+def download_playlist(file_path, download_dir='videos'):
     try:
+        # Vérifier les permissions et créer le répertoire 'videos' s'il n'existe pas
+        if not os.path.exists(download_dir):
+            os.makedirs(download_dir)
+        if not os.access(download_dir, os.W_OK):
+            raise PermissionError(f"Permission denied for directory: {download_dir}")
+
         with open(file_path, 'r') as file:
             links = file.readlines()
 
@@ -66,7 +74,7 @@ def download_playlist(file_path):
                     print("Veuillez entrer un nombre valide.")
 
             chosen_format = formats[choice]['format_id']
-            download_video(url, chosen_format)
+            download_video(url, chosen_format, download_dir)
 
     except Exception as e:
         print(f"Erreur lors du téléchargement de la playlist : {e}")
@@ -94,7 +102,8 @@ if __name__ == "__main__":
             download_video(video_url, chosen_format)
 
         elif choix_mode == '2':
-            download_playlist({os.path.abspathos.path.join('videos')})
+            download_dir = os.path.abspath('videos.txt')
+            download_playlist(download_dir)
 
         else:
             print("Choix invalide. Veuillez choisir 1 ou 2.")
